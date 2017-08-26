@@ -1,0 +1,166 @@
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.bigMultiple {
+    height: 500px;
+    width: 900px;
+}
+
+.smallMultiple {
+    height: 250px;
+    width: 450px;
+}
+
+#visTable > tbody > .firstRow > td {
+    padding-bottom: 7px;
+}
+
+#clockGuiTable  td {
+    padding-right: 10px;
+}
+
+
+.list-group-item {
+    cursor: pointer;
+}
+
+.visTypeDropdown a {
+    cursor: pointer;
+}
+
+.country:hover{
+    stroke: #fff;
+    stroke-width: 2px;
+}
+.text{
+    font-size:10px;
+    text-transform:capitalize;
+}
+
+#container {
+    margin:10px 10%;
+    border:2px solid #000;
+    border-radius: 5px;
+    height:100%;
+    overflow:hidden;
+    background: #F0F8FF;
+}
+.hidden {
+    display: none;
+}
+
+div.tooltip {
+    color: #222;
+    background: #fff;
+    padding: .5em;
+    text-shadow: #f5f5f5 0 1px 0;
+    border-radius: 2px;
+    box-shadow: 0px 0px 2px 0px #a6a6a6;
+    opacity: 0.9;
+    position: absolute;
+}
+
+
+.equator {
+    stroke: #ccc;
+    stroke-width: 1px;
+}
+
+body {
+    font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #ddd;
+    shape-rendering: crispEdges;
+}
+
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2px;
+}
+
+.rotate {
+    -moz-transform: rotate(-90.0deg);  /* FF3.5+ */
+    -o-transform: rotate(-90.0deg);  /* Opera 10.5 */
+    -webkit-transform: rotate(-90.0deg);  /* Saf3.1+, Chrome */
+    filter:  progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083);  /* IE6,IE7 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)"; /* IE8 */
+}
+
+.clock-table td {
+    width: 35px;
+}
+
+.time-cell {
+    cursor: pointer;
+    height: 40px;
+    -moz-transform: rotate(-90.0deg);  /* FF3.5+ */
+    -o-transform: rotate(-90.0deg);  /* Opera 10.5 */
+    -webkit-transform: rotate(-90.0deg);  /* Saf3.1+, Chrome */
+    filter:  progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083);  /* IE6,IE7 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)"; /* IE8 */
+}
+
+.time-cell:nth-child(even) {
+    color: gray;
+    border-right: 2px solid gray;
+}
+
+.time-cell:nth-child(odd) {
+    color: black;
+    border-right: 2px solid black;
+}
+
+.clock-gui {
+    background-color: ivory;
+    border: 1px solid black;
+    width: 490px;
+}
+
+.min-max-row {
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.min-max-cell {
+    height: 8px;
+    cursor: pointer;
+}
+
+.min-max-cell-selected {
+    background-color: greenyellow;
+    border-left: 2px solid greenyellow;
+    border-right: 2px solid greenyellow;
+}
+
+.progression-td {
+    overflow: visible;
+}
+
+.pre-progression-div {
+    background-color: white;
+    height: 8px;
+    border-right: 2px solid blue;
+}
+
+.progression-div {
+    background-color: blue;
+    height: 8px;
+}
+
+.lijstje {
+    overflow-y: scroll;
+    width: 190px;
+    margin-right: 10px;
+    height: 375px;
+}

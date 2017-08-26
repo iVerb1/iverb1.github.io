@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+    <title>Internet Usage Visualization</title>
+
+    <link href="lib/jquery-ui-1.11.2/themes/smoothness/jquery-ui.css" rel="stylesheet">
+    <link href="lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+    <script src="lib/jquery-2.1.1/jquery-2.1.1.min.js"></script>
+    <script src="lib/jquery-ui-1.11.2/jquery-ui.min.js"></script>
+    <script src="lib/bootstrap/bootstrap.min.js"></script>
+
+    <script src="lib/d3/d3.v3.min.js"></script>
+    <script src="lib/d3/queue.v1.min.js"></script>
+    <script src="lib/d3/topojson.v1.min.js"></script>
+
+    <script src="js/Main.js"></script>
+    <script src="js/Country.js"></script>
+    <script src="js/Group.js"></script>
+    <script src="js/Clock.js"></script>
+    <script src="js/Map.js"></script>
+    <script src="js/TimeSeries.js"></script>
+    <script src="js/TimeSeriesItem.js"></script>
+    <script src="js/StreamGraph.js"></script>
+    <script src="js/LineChart.js"></script>
+    <script src="js/Group.js"></script>
+
+    <link href="style/style.css" rel="stylesheet">
+</head>
+<body>
+
+<table id="visTable" class="noselect" style="margin-top: 15px; margin-left: 15px">
+    <tr class="firstRow">
+        <td rowspan="2">
+            <div id="multiple1"  class="multiple bigMultiple"></div>
+        </td>
+        <td>
+            <div id="multiple2" class="multiple smallMultiple"></div>
+        </td>
+        <td>
+            <div id="multiple3" class="multiple smallMultiple"></div>
+        </td>
+    </tr>
+    <tr class="firstRow">
+        <td>
+            <div id="multiple4" class="multiple smallMultiple"></div>
+        </td>
+        <td>
+            <div id="multiple5" class="multiple smallMultiple"></div>
+        </td>
+    </tr>
+    <tr>
+        <td VALIGN="top" ALIGN="center">
+            <div id="mapContainer" style="position: relative"></div>
+        </td>
+        <td colspan="2">
+            <div id="clockGuiTemplate" class="clock-gui" >
+                <table id="clockGuiTable">
+                    <tbody>
+                    <tr>
+                        <td>
+                            <div class="btn btn-default clock-start-stop">
+                                <i class="clock-icon-start-stop fa fa-play"></i>
+                            </div>
+                        </td>
+                        <td>
+                            seconds/year <input class="clock-seconds" style="width: 40px" type="number" value="0.5" min="0.1" step="0.1" />
+                        </td>
+                        <td>
+                            steps/year <input class="clock-steps" style="width: 40px" type="number" value="12" min="1" />
+                        </td>
+                        <td>sticky <input class="clock-sticky" type="checkbox" /></td>
+                        <td>repeat <input class="clock-repeat" type="checkbox"/></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table class="clock-table">
+                    <tbody>
+                    <tr class="min-max-row"></tr>
+                    <tr class="time-row"></tr>
+                    </tbody>
+                </table>
+                <table class="clock-table">
+                    <tbody>
+                    <tr>
+                        <td class="progression-td">
+                            <div class="pre-progression-div"></div>
+                        </td>
+                        <td class="progression-td">
+                            <div style="margin-left: -1px;" class="progression-div"></div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <table style="margin-top:20px">
+                <tbody>
+                    <tr>
+                        <td>
+                            <h4>Countries <div id="btnDeselectAll" class="btn btn-xs btn-primary">Deselect all</div></h4>
+                            <div id="countryList" class="lijstje list-group pull-left list">
+                            </div>
+                        </td>
+                        <td>
+                            <h4>Groups <div id="iconAddGroup" class="btn btn-xs btn-primary"><i class="fa fa-plus"></i></div></h4>
+                            <div id="groupList" class="lijstje list-group pull-left list">
+                            </div>
+                        </td>
+                        <td>
+                            <h4 id="groupSpecificListTitle"></h4>
+                            <div id="groupSpecificList" class="lijstje list-group pull-left list">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

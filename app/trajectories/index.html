@@ -1,0 +1,204 @@
+ <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <title>Trajectory Simplification Algorithm</title>
+
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <link rel="stylesheet" href="css/leaflet-control-boxzoom.css" />
+    <link rel="stylesheet" href="css/leaflet.contextmenu.css" />
+    <link href="lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/d3-tip-styles.css" />
+    <link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v0.0.4/leaflet.fullscreen.css' rel='stylesheet' />
+    <link href="css/style.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="lib/leaflet.js"></script>
+    <script src="GeoData.js"></script>
+    <script src="GeoJSON.js"></script>
+    <script src="Algorithm.js"></script>
+    <script src="Segment.js"></script>
+    <script src="Rectangle.js"></script>
+    <script src="Vector.js"></script>
+    <script src="IntervalTree.js"></script>
+    <script src="Interval.js"></script>
+    <script src="Preprocessor.js"></script>
+    <script src="lib/bootstrap/bootstrap.min.js"></script>
+    <script src="lib/leaflet-dvf.js"></script>
+    <script src="lib/leaflet.dvf.experimental.js"></script>
+    <script type='text/javascript' src="lib/leaflet.restoreview.js"></script>
+    <script src="lib/leaflet-control-boxzoom.js"></script>
+    <script src="lib/leaflet.contextmenu.js"></script>
+    <script src="lib/d3-tip.js"></script>
+    <script src="DebugMenu.js"></script>
+	<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v0.0.4/Leaflet.fullscreen.min.js'></script>
+</head>
+<body>
+   <div id="map"></div>
+   <script type="text/javascript"> 
+       EPS = 0.05;
+       EPS_S = 0.05;
+       ALPHA = Math.PI / 180 * 5; // 5 degrees.
+       EQUALIZE = false; // Makes all segments < 2 * epsilon length by linear interpolation.
+
+       function CalculateTrajectories(isInitialDraw) {
+           var albatros = new GeoData('./data/albatros.csv', function () {
+               console.log("Calculating with parameters EPS: " + EPS + " EPS_S " + EPS_S + " ALPHA " + ALPHA + " EQ " + EQUALIZE);
+               var trajectories = preProcess(albatros, EPS_S, ALPHA, EQUALIZE);
+               var segments = [];
+               for (var i = 0; i < trajectories.length; i++) {
+                   var traj = trajectories[i];
+                   for (var j = 0; j < traj.length; j++) {
+                       segments.push(traj[j]);
+                   }
+               }
+
+               segments = runAlgorithm(segments);
+               display(segments, isInitialDraw);
+           });
+       }
+       CalculateTrajectories(true);
+
+       var buttonsList = [{
+           text: 'Print data to console',
+           callback: function () {
+               var data = albatros;
+               if (data === undefined) {
+                   console.log("Loading albatros data...");
+                   data = new GeoData('data/albatros.csv', function () {
+                       console.log(data);
+                   });
+               } else {
+                   console.log(data);
+               }
+           }
+       }];
+
+       var map = L.map('map', {
+           fullscreenControl: true,
+           detectRetina: true,
+           reuseTiles: true,
+           bounds: null,
+           contextmenu: true,
+           contextmenuWidth: 140,
+           contextmenuItems: buttonsList
+       });
+
+       L.tileLayer('https://{s}.tiles.mapbox.com/v4/thomhurks.lifnnoec/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoidGhvbWh1cmtzIiwiYSI6ImtENDluRmsifQ.Q4w4kAlNk0YfaRclQp4BMA', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            subdomains: ['a','b','c','d'],
+            mapId: 'thomhurks.lifnnoec',
+            token: 'pk.eyJ1IjoidGhvbWh1cmtzIiwiYSI6ImtENDluRmsifQ.Q4w4kAlNk0YfaRclQp4BMA',
+            detectRetina: true,
+            reuseTiles: true,
+            bounds: null
+		}).addTo(map);
+
+       L.Control.boxzoom({ position:'topleft' }).addTo(map);
+
+       map.addControl(new DebugMenu());
+
+       var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+           g = svg.append("g").attr("class", "leaflet-zoom-hide"),
+           tip = d3.tip().attr('class', 'd3-tip').html(function(d) {
+               if (d !== undefined && d !== null) {
+                    var coordinates = d.geometry.coordinates;
+                    return "(" +
+                           Math.floor(coordinates[0][0] * 100) / 100 + ", " + Math.floor(coordinates[0][1] * 100) / 100
+                           + "<br>" +
+                           Math.floor(coordinates[1][0] * 100) / 100 + ", " + Math.floor(coordinates[1][1] * 100) / 100
+                           + ")";
+               }
+            });
+
+       function display(segments, isInitialDraw) {
+
+           // Convert to GeoJSON.
+           var geoJSON = new GeoJSON();
+           geoJSON.addSegments(segments);
+           var firstCoord = geoJSON.features[0].geometry.coordinates[0];
+
+           // Display it.
+           var transform = d3.geo.transform({point: projectPoint}),
+                   path = d3.geo.path().projection(transform);
+
+           if (!map.restoreView()) {
+               map.setView(new L.LatLng(firstCoord[1], firstCoord[0]), 5);
+           }
+
+           var weightExtent = d3.extent(geoJSON.features, function(d) { return d.properties.edgeweight; });
+           var color = d3.scale.sqrt().domain(weightExtent).range(["white", "red"]);
+
+           var updateSelection = g.selectAll("path").data(geoJSON.features);
+           var feature = updateSelection.enter().append("path")
+                   .attr('stroke-width', function(d) { return Math.sqrt(d.properties.edgeweight); })
+                   .style("stroke-width", function(d) { return Math.sqrt(d.properties.edgeweight); })
+                   .style("stroke-linecap", "round")
+                   .style("stroke", function(d) { return color(d.properties.edgeweight); })
+                   .style("fill", "none")
+                   .on('mouseover', tip.show)
+                   .on('mouseout', tip.hide);
+           updateSelection.exit().remove();
+
+           feature.call(tip);
+
+           // This is the zoomlevel at which the edgeweight variable corresponds 1-to-1 with screen pixel units.
+           // Adjust this number to adjust how edges scale. This is basically a hack, but native SVG scaling
+           // in Leaflet combined with D3 is like rocket science.
+           var baseZoom = 8;
+
+           // Make sure the event is not subscribed to twice.
+           map.off("viewreset", reset);
+           map.on("viewreset", reset);
+           reset();
+
+           // Reposition the SVG to cover the features.
+           function reset() {
+               var newZoom = map.getZoom();
+               var zoomDiff = newZoom - baseZoom;
+               var scale = Math.pow(2, zoomDiff);
+
+               var bounds = path.bounds(geoJSON),
+                       topLeft = bounds[0],
+                       bottomRight = bounds[1];
+
+               // Add offset because D3 is silly.
+               topLeft[0] -= 25;
+               topLeft[1] -= 25;
+               bottomRight[0] += 25;
+               bottomRight[1] += 25;
+
+               svg.attr("width", bottomRight[0] - topLeft[0])
+                       .attr("height", bottomRight[1] - topLeft[1])
+                       .style("left", topLeft[0] + "px")
+                       .style("top", topLeft[1] + "px");
+
+               g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+
+               feature.attr("d", path);
+
+               feature.attr('stroke-width', function(d) { return Math.sqrt(d.properties.edgeweight) * scale; })
+                       .style("stroke-width", function(d) { return Math.sqrt(d.properties.edgeweight) * scale; });
+           }
+
+           if (!isInitialDraw) {
+               // Unfortunate but necessary hack to force a refresh.
+               // The redraw() method does not have the same effect.
+               map.setView(new L.LatLng(firstCoord[1], firstCoord[0]), map.getZoom() - 1);
+           }
+
+           // Use Leaflet to implement a D3 geometric transformation.
+           function projectPoint(x, y) {
+               var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+               this.stream.point(point.x, point.y);
+           }
+       }
+
+	</script>
+</body>
+</html>
+

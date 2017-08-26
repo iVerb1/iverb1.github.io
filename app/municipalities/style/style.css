@@ -1,0 +1,87 @@
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#propertiesList {
+    position: absolute;
+    overflow-y: scroll;
+    width: 190px;
+    height: 700px;
+    z-index: 100;
+}
+
+#filterPanel {
+    position: absolute;
+    width: 190px;
+    z-index: 101;
+    padding: 3px;
+}
+
+path {
+    stroke: grey;
+    stroke-width: 1px;
+    fill: white;
+}
+
+li a {
+    cursor: pointer;
+}
+
+.list-group-item {
+    cursor: pointer;
+}
+
+.scrollable-menu {
+    height: auto;
+    max-height: 500px;
+    overflow-x: hidden;
+}
+
+#xAxisList li a, #yAxisList li a {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.tick {
+    font: 11px sans-serif;
+}
+
+.label{
+    font: 15px sans-serif;
+}
+
+.x-axis,
+.y-axis,
+.frame {
+    shape-rendering: crispEdges;
+}
+
+.x-axis-barchart text{
+    display: none;
+}
+
+.x-axis line,
+.y-axis line,
+.x-axis-barchart line,
+.y-axis-barchart line{
+    stroke: #ddd;
+}
+
+.frame {
+    fill: none;
+}
+
+circle.hidden {
+    fill: #ccc !important;
+}
+
+.extent {
+    fill: #000;
+    fill-opacity: .125;
+    stroke: #fff;
+}
