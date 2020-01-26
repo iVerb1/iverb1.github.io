@@ -216,7 +216,7 @@
         let tick = () => {
             field = updated_field(field);
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, 2*canvas.width, 2*canvas.height);
 
             if (highlighted_position) {
                 draw_triangle(highlighted_position, 'lightgray');
