@@ -1,0 +1,243 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <canvas id="canvas" width="1000" style="border: 1px solid black;">
+    </body>
+
+    <script>
+        let mouse_is_down = false;
+        document.body.onmousedown = () => mouse_is_down = true;
+        document.body.onmouseup = () => mouse_is_down = false;
+
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+        
+        let CELL_MAX_AGE = 75;
+        let P_INFECT = 0.01;
+        let num_columns = 100;
+        let num_rows = 40;
+
+        let side_length = canvas.width / ((num_columns - 1) / 2);
+        let triangle_height = Math.sin(Math.PI/3) * side_length;
+        
+        canvas.height = num_rows * triangle_height;
+        ctx.translate(-side_length / 2, 0);
+
+        let highlighted_position = undefined;
+        
+        let make_cell = () => ({
+            is_alive: false,
+            age: 0
+        });
+
+        let copy_cell = (cell) => {
+            let c = {};
+            for (let k in cell) {
+                c[k] = cell[k];
+            }
+            return c;
+        }
+
+        let field = [];
+
+        for (let c = 0; c < num_columns; c++) {
+            let row = [];
+            for (let r = 0; r < num_rows; r++) {
+                row.push(make_cell());                
+            }
+            field.push(row);
+        }
+
+        let positions = (function() {
+            let ps = [];
+
+            for (let c = 0; c < num_columns; c++) {
+                for (let r = 0; r < num_rows; r++) {
+                    ps.push([c, r])
+                }
+            }
+
+            return ps;
+        })();
+
+        let copy_field = (field) => {
+            let f = [];
+            for (let c = 0; c < num_columns; c++) {
+                let row = [];
+                for (let r = 0; r < num_rows; r++) {
+                    row.push(copy_cell(field[c][r]));                
+                }
+                f.push(row);
+            }
+            return f;
+        }
+
+        let updated_field = (field) => {
+            let f = copy_field(field);
+
+            positions.forEach(([c, r]) => {
+                let cell = f[c][r];
+                    
+                if (cell.is_alive) {
+                    cell.age = cell.age + 1;
+                    
+                    if (cell.age > CELL_MAX_AGE) {
+                        cell.is_alive = false;
+                        cell.age = 0;
+                    }
+                } else {
+                    let infect_cell = false;
+
+                    neighboring_positions([c,r])
+                        .filter(([c,r]) => field[c][r].is_alive)
+                        .forEach(([c,r]) => {
+                            if (!infect_cell && Math.random() < P_INFECT) {
+                                cell.is_alive = true;
+                            }
+                        });
+                }
+            });
+            
+
+            return f;
+        }
+
+        let position = (c, r) => [c, r];
+
+        let is_even = (n) => n % 2 == 0;
+
+        let points_down = ([c, r]) => is_even(c) ? is_even(r) : !is_even(r);
+
+        let is_in_range = (n, lower, upper) => lower <= n && n <= upper;
+
+        let is_in_field = ([c, r]) => is_in_range(c, 0, num_columns - 1) &&
+                                      is_in_range(r, 0, num_rows - 1);
+
+        let neighboring_positions = ([c, r]) => [[c - 1, r],
+                                                [c + 1, r],
+                                                [c,   points_down([c, r]) ?
+                                                    r - 1 :
+                                                    r + 1]]
+                                                .filter(is_in_field);
+                                                
+        let position_is_equal = (pos1, pos2) => pos1[0] === pos2[0] && pos1[1] === pos2[1];
+            
+        let coordinates_from_position = (position) => {
+            var [c, r] = position
+            
+            if (points_down(position)) {
+                return [
+                    [(c / 2) * side_length, r * triangle_height],
+                    [((c / 2) + 1) * side_length, r * triangle_height],
+                    [((c / 2) + 0.5) * side_length, (r + 1) * triangle_height]
+                ];
+            }
+            else {
+                return [
+                    [((c / 2) + 0.5) * side_length, r * triangle_height],
+                    [((c / 2) + 1) * side_length, (r + 1) * triangle_height],
+                    [(c / 2) * side_length, (r + 1) * triangle_height]
+                ];
+            }
+        }
+
+        let interpolate_colors = ([r1,g1,b1], [r2,g2,b2], scalar) => {
+            return [r1 + scalar * (r2 - r1),
+                    g1 + scalar * (g2 - g1),
+                    b1 + scalar * (b2 - b1)]
+        }
+
+        let draw_triangle = (position, fillStyle = 'white', strokeStyle = 'crimson') => {
+            var [[polyHeadX, polyHeadY], ...polyTail] = coordinates_from_position(position);
+            ctx.fillStyle = fillStyle;
+            ctx.strokeStyle = strokeStyle
+            ctx.lineWidth = 0.25;
+            ctx.beginPath();
+            ctx.moveTo(polyHeadX, polyHeadY);
+            polyTail.forEach(([coordX, coordY]) => ctx.lineTo(coordX, coordY));
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+        };
+        
+        let draw_background = () => {
+            for (var i = 0; i < num_columns; i++) {
+                for (var j = 0; j < num_rows; j++) {
+                    draw_triangle([i, j]);
+                }
+            }
+        };
+
+        let position_from_coordinates = (x, y) => {
+            let row_nr = Math.floor(y / triangle_height);
+
+            var bucket_nr = Math.floor(x / (side_length / 2));
+            bucket_width  = side_length / 2;
+
+            let x_relative_to_bucket = (x - bucket_width * bucket_nr) / bucket_width;
+            let y_relative_to_bucket = (y - triangle_height * row_nr) / triangle_height;
+
+            let falls_left = (is_even(bucket_nr) && is_even(row_nr) && x_relative_to_bucket < (1 - y_relative_to_bucket)) ||
+                             (!is_even(bucket_nr) && is_even(row_nr) && x_relative_to_bucket < y_relative_to_bucket) ||
+                             (!is_even(bucket_nr) && !is_even(row_nr) && x_relative_to_bucket < (1 - y_relative_to_bucket)) ||
+                             (is_even(bucket_nr) && !is_even(row_nr) && x_relative_to_bucket < y_relative_to_bucket)
+
+            let col_nr = falls_left ? bucket_nr : bucket_nr + 1;
+
+            return [col_nr, row_nr];
+        }
+
+        let toggle_alive = ([c, r]) => field[c][r].is_alive = !field[c][r].is_alive;
+
+        canvas.addEventListener('mousemove', e => {
+            let position = position_from_coordinates(e.layerX, e.layerY);
+
+            if (highlighted_position && !position_is_equal(position, highlighted_position) && mouse_is_down) {
+                toggle_alive(position);
+            }
+
+            highlighted_position = position;
+        });
+
+        canvas.addEventListener('click', e => {
+            let position = position_from_coordinates(e.layerX, e.layerY);
+            toggle_alive(position);
+        });
+        
+        canvas.addEventListener('mouseleave', e => highlighted_position = undefined);
+    
+        let ticks_per_second = 30;
+        let tick_nr = 0;
+        let tick_timeout = null;
+        
+        draw_background();
+
+        let tick = () => {
+            field = updated_field(field);
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (highlighted_position) {
+                draw_triangle(highlighted_position, 'lightgray');
+            }
+
+            positions.filter(([c,r]) => field[c][r].is_alive)
+                     .forEach(p => {
+                         var normalized_age = field[p[0]][p[1]].age / CELL_MAX_AGE;
+                         var [r, g, b] = interpolate_colors([0, 255, 0], [50, 50, 50], normalized_age);
+                         let color = 'rgb(' + r + ',' + g + ',' + b + ')';
+                         draw_triangle(p, color)
+                     });
+
+            tick_nr = tick_nr + 1;
+            tick_timeout = window.setTimeout(() => tick(), 1000/ticks_per_second);            
+        }
+        
+        let reset = () => t = 0;
+        let start = () => tick();
+        let stop  = () => window.clearTimeout(tick_timeout);
+        
+        start();
+    </script>
+</html>
