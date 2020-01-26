@@ -148,7 +148,7 @@
                     b1 + scalar * (b2 - b1)]
         }
 
-        let draw_triangle = (position, fillStyle = 'white', strokeStyle = 'crimson') => {
+        let draw_triangle = (position, fillStyle = 'white', strokeStyle = 'transparent') => {
             var [[polyHeadX, polyHeadY], ...polyTail] = coordinates_from_position(position);
             ctx.fillStyle = fillStyle;
             ctx.strokeStyle = strokeStyle
