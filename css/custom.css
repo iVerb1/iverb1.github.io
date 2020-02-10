@@ -127,6 +127,11 @@ img.logo {
     box-shadow: none !important;
 }
 
+.btn-group {
+	margin-left: 2px;
+	margin-right: 2px;
+}
+
 .btn, ul.dropdown-menu li a {
     background: transparent !important;
     color: rgba(255,255,255,.8) !important;
